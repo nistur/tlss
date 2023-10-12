@@ -1,8 +1,10 @@
-#include "template.h"
+#include "tlss.h"
 
-tmplReturn g_tmplError;
-const char* g_tmplErrors[] = 
+tlssReturn g_tlssError;
+const char* g_tlssErrors[] = 
 {
     "Success",
     "Null context",
+    "Null grid",
+    "Invalid data",
 };
