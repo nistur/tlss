@@ -26,6 +26,7 @@ typedef enum
     TLSS_NO_GRID,
     TLSS_INVALID_DATA,
     TLSS_INVALID_GRID,
+    TLSS_INCOMPLETE_DATA,
 } tlssReturn;
 
 typedef struct _tlssContext tlssContext;
@@ -39,6 +40,12 @@ TLSS_EXPORT tlssReturn   tlssTerminateContext(tlssContext** context);
 
 TLSS_EXPORT tlssReturn   tlssLoad            (tlssContext* context, const tlssDigit* data, tlssGrid** grid);
 TLSS_EXPORT tlssReturn   tlssReleaseGrid     (tlssContext* context, tlssGrid** grid);
+TLSS_EXPORT tlssReturn   tlssValidateGrid    (tlssGrid* grid);
+
+TLSS_EXPORT tlssReturn   tlssGetValue        (tlssContext* context, tlssGrid* grid, tlssIndex x, tlssIndex y, tlssDigit* v);
+TLSS_EXPORT tlssReturn   tlssSetValue        (tlssContext* context, tlssGrid* in, tlssIndex x, tlssIndex y, tlssDigit v, tlssGrid** out);
+
+TLSS_EXPORT tlssReturn   tlssGridEquals      (tlssGrid* a, tlssGrid* b);
 
 TLSS_EXPORT const char*  tlssError();
 

@@ -41,7 +41,7 @@ ${TARGET}-dynamic : ${OUTDIR}/lib${TARGET}.so
 ${TARGET}-static : ${OUTDIR}/lib${TARGET}.a
 test: ${OUTDIR}tests
 	@echo "Running Testsuite"
-	@$<
+	@$< -n 1000
 
 ${OUTDIR}/lib${TARGET}.so : dir ${OBJS}
 	@echo "Linking... lib${TARGET}.so"

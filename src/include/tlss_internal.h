@@ -17,6 +17,9 @@
 	}					\
     }
 
+#define TLSS_INDEX(x, y) (((y) * 9) + (x))
+#define TLSS_BOX_INDEX(n) (((n)/3)*3)
+
 /***************************************
  * Library context
  * - holds current state
@@ -33,6 +36,9 @@ struct _tlssGrid
     tlssDigit m_data[81];
 };
 
+tlssReturn tlssAllocGrid(tlssContext* context, tlssGrid** grid);
+tlssReturn tlssGridClone(tlssGrid* src, tlssGrid* dst);
+
 /***************************************
  * Some basic memory management wrappers
  ***************************************/
@@ -45,12 +51,25 @@ struct _tlssGrid
  ***************************************/
 extern tlssReturn  g_tlssError;
 extern const char* g_tlssErrors[];
-#define tlssReturn(x)				\
+#define tlssReturnCode(x)			\
     {						\
 	g_tlssError = TLSS_##x;			\
 	return TLSS_##x;			\
     }
 
+#define tlssReturn()				\
+    {						\
+	return g_tlssError;			\
+    }
 
+// unsure if this will work, but turn off null checking etc for
+// extra speed
+#if defined(TLSS_UNSAFE)
+#define TLSS_CHECK(rest, ret)
+#else
+#define TLSS_CHECK(test, ret)						\
+    if (test)								\
+	tlssReturnCode(ret);
+#endif
 
 #endif/*__TLSS_INTERNAL_H__*/
