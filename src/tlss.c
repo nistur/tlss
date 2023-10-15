@@ -134,7 +134,7 @@ tlssReturn tlssValidateGrid(tlssGrid* grid)
     tlssReturnCode(SUCCESS);
 }
 
-tlssReturn tlssGetValue(tlssContext* context, tlssGrid* grid, tlssIndex x, tlssIndex y, tlssDigit* v)
+tlssReturn tlssGetValue(tlssContext* context, tlssGrid* grid, tlssIndex y, tlssIndex x, tlssDigit* v)
 {
     TLSS_CHECK(context == 0, NO_CONTEXT);
     TLSS_CHECK(grid == 0, NO_GRID);
@@ -145,7 +145,7 @@ tlssReturn tlssGetValue(tlssContext* context, tlssGrid* grid, tlssIndex x, tlssI
     tlssReturnCode(SUCCESS);
 }
 
-tlssReturn tlssSetValue(tlssContext* context, tlssGrid* in, tlssIndex x, tlssIndex y, tlssDigit v, tlssGrid** out)
+tlssReturn tlssSetValue(tlssContext* context, tlssGrid* in, tlssIndex y, tlssIndex x, tlssDigit v, tlssGrid** out)
 {
     TLSS_CHECK(context == 0, NO_CONTEXT);
     TLSS_CHECK(in == 0, NO_GRID);
@@ -225,10 +225,16 @@ tlssReturn tlssGridMerge(tlssContext* context, tlssGrid* a, tlssGrid* b, tlssGri
     }
     for(int i = 0; i < 81; ++i)
     {
-	if((*out)->m_data[i] != b->m_data[i])
+	// out = 0, b = 0, no change -
+	// out = 0, b = *, select b
+	// out = *, b = 0, no change -
+	// out = A, b = A, no change -
+	// out = A, b = B, ERROR
+	
+	if(((*out)->m_data[i] != b->m_data[i]) && b->m_data[i] != 0)
 	{
 	    // two grids attempt to change the same cell?
-	    if((*out)->m_data[i] != 0 && b->m_data[i] != 0)
+	    if((*out)->m_data[i] != 0)
 	    {
 		tlssReleaseGrid(context, out);
 		tlssReturnCode(INVALID_DATA);

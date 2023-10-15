@@ -42,8 +42,8 @@ TLSS_EXPORT tlssReturn   tlssLoad            (tlssContext* context, const tlssDi
 TLSS_EXPORT tlssReturn   tlssReleaseGrid     (tlssContext* context, tlssGrid** grid);
 TLSS_EXPORT tlssReturn   tlssValidateGrid    (tlssGrid* grid);
 
-TLSS_EXPORT tlssReturn   tlssGetValue        (tlssContext* context, tlssGrid* grid, tlssIndex x, tlssIndex y, tlssDigit* v);
-TLSS_EXPORT tlssReturn   tlssSetValue        (tlssContext* context, tlssGrid* in, tlssIndex x, tlssIndex y, tlssDigit v, tlssGrid** out);
+TLSS_EXPORT tlssReturn   tlssGetValue        (tlssContext* context, tlssGrid* grid, tlssIndex y, tlssIndex x, tlssDigit* v);
+TLSS_EXPORT tlssReturn   tlssSetValue        (tlssContext* context, tlssGrid* in, tlssIndex y, tlssIndex x, tlssDigit v, tlssGrid** out);
 
 TLSS_EXPORT tlssReturn   tlssGridEquals      (tlssGrid* a, tlssGrid* b);
 TLSS_EXPORT tlssReturn   tlssGridMerge       (tlssContext* context, tlssGrid* a, tlssGrid* b, tlssGrid** out);
