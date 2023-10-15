@@ -46,7 +46,8 @@ TLSS_EXPORT tlssReturn   tlssGetValue        (tlssContext* context, tlssGrid* gr
 TLSS_EXPORT tlssReturn   tlssSetValue        (tlssContext* context, tlssGrid* in, tlssIndex x, tlssIndex y, tlssDigit v, tlssGrid** out);
 
 TLSS_EXPORT tlssReturn   tlssGridEquals      (tlssGrid* a, tlssGrid* b);
-
+TLSS_EXPORT tlssReturn   tlssGridMerge       (tlssContext* context, tlssGrid* a, tlssGrid* b, tlssGrid** out);
+    
 TLSS_EXPORT const char*  tlssError();
 
 #ifdef __cplusplus

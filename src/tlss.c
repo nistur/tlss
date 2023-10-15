@@ -207,3 +207,35 @@ tlssReturn tlssGridEquals(tlssGrid* a, tlssGrid* b)
 	tlssReturnCode(INVALID_GRID);
     tlssReturnCode(SUCCESS);
 }
+
+tlssReturn tlssGridMerge(tlssContext* context, tlssGrid* a, tlssGrid* b, tlssGrid** out)
+{
+    TLSS_CHECK(context == 0, NO_CONTEXT)
+    TLSS_CHECK(a == 0 || b == 0 || out == 0, NO_GRID);
+    if(tlssAllocGrid(context, out) != TLSS_SUCCESS)
+    {
+	// shouldn't be allocated in this case, but just ensure it's still 0
+	*out = 0;
+	tlssReturn();
+    }
+    if(tlssGridClone(a, *out) != TLSS_SUCCESS)
+    {
+	tlssReleaseGrid(context, out);
+	tlssReturn();
+    }
+    for(int i = 0; i < 81; ++i)
+    {
+	if((*out)->m_data[i] != b->m_data[i])
+	{
+	    // two grids attempt to change the same cell?
+	    if((*out)->m_data[i] != 0 && b->m_data[i] != 0)
+	    {
+		tlssReleaseGrid(context, out);
+		tlssReturnCode(INVALID_DATA);
+	    }
+	    (*out)->m_data[i] = b->m_data[i];
+	}
+    }
+    
+    tlssReturnCode(SUCCESS);
+}

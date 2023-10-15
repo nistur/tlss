@@ -75,46 +75,6 @@ TEST(LoadGrid, Basic, 0.0f,
      }
     );
 
-tlssDigit incompleteData[] = {
-    0, 6, 0,  4, 2, 0,  0, 0, 1,
-    0, 9, 0,  0, 8, 3,  0, 2, 0,
-    1, 0, 2,  0, 1, 0,  7, 0, 0,
-    
-    0, 0, 0,  8, 7, 0,  5, 0, 0,
-    0, 5, 1,  3, 4, 9,  0, 0, 2,
-    4, 0, 3,  0, 6, 0,  0, 8, 0,
-    
-    6, 0, 5,  1, 3, 2,  0, 0, 0,
-    7, 0, 4,  0, 0, 8,  0, 1, 0,
-    0, 1, 0,  0, 6, 0,  8, 5, 0,
-};
-tlssDigit invalidData[] = {
-    1, 2, 0,  0, 0, 0,  0, 0, 0,
-    1, 2, 0,  0, 0, 0,  0, 0, 0,
-    1, 2, 0,  0, 0, 0,  0, 0, 0,
-    
-    2, 3, 0,  0, 0, 0,  0, 0, 0,
-    2, 3, 0,  0, 0, 0,  0, 0, 0,
-    2, 3, 0,  0, 0, 0,  0, 0, 0,
-    
-    3, 4, 0,  0, 0, 0,  0, 0, 0,
-    3, 4, 0,  0, 0, 0,  0, 0, 0,
-    3, 4, 0,  0, 0, 0,  0, 0, 0,
-};
-tlssDigit validData[] = {
-    5, 6, 8,  4, 2, 7,  3, 9, 1,
-    1, 9, 7,  6, 8, 3,  4, 2, 5,
-    3, 4, 2,  9, 1, 5,  7, 6, 8,
-    
-    9, 2, 6,  8, 7, 1,  5, 3, 4,
-    8, 5, 1,  3, 4, 9,  6, 7, 2,
-    4, 7, 3,  2, 5, 6,  1, 8, 9,
-    
-    6, 8, 5,  1, 3, 2,  9, 4, 7,
-    7, 3, 4,  5, 9, 8,  2, 1, 6,
-    2, 1, 9,  7, 6, 4,  8, 5, 3,
-};
-
 TEST(ValidateGrid, Basic, 0.0f,
      // initialisation
      {
@@ -264,6 +224,52 @@ TEST(GridEquals, Basic, 0.0f,
 	 tlssReleaseGrid(m_data.context, &nextGridC);
 	 tlssReleaseGrid(m_data.context, &nextGridB);
 	 tlssReleaseGrid(m_data.context, &nextGridA);
+     },
+     // data
+     {
+	 tlssGrid* grid;
+	 tlssContext* context;
+     }
+    );
+
+
+TEST(MergeGrid, Basic, 0.0f,
+     //initialisation
+     {
+	 tlssInitContext(&m_data.context);
+	 tlssLoad(m_data.context, incompleteData, &m_data.grid);
+     },
+     // cleanup
+     {
+	 tlssReleaseGrid(m_data.context, &m_data.grid);
+	 tlssTerminateContext(&m_data.context);
+     },
+     //test
+     {
+	 tlssGrid* nextGridA = NULL;
+	 tlssGrid* nextGridB = NULL;
+	 tlssSetValue(m_data.context, m_data.grid, 6, 5, 1, &nextGridA);
+	 tlssSetValue(m_data.context, m_data.grid, 0, 2, 8, &nextGridB);
+
+	 tlssGrid* out = NULL;
+	 ASSERT(tlssGridMerge(NULL, nextGridA, nextGridB, &out) == TLSS_NO_GRID);
+	 ASSERT(out == NULL);
+	 ASSERT(tlssGridMerge(m_data.context, NULL, nextGridB, &out) == TLSS_NO_GRID);
+	 ASSERT(out == NULL);
+	 ASSERT(tlssGridMerge(m_data.context, nextGridA, NULL, &out) == TLSS_NO_GRID);
+	 ASSERT(out == NULL);
+	 ASSERT(tlssGridMerge(m_data.context, nextGridA, nextGridB, NULL) == TLSS_NO_GRID);
+	 ASSERT(out == NULL);
+	 
+	 ASSERT(tlssGridMerge(m_data.context, nextGridA, nextGridB, &out) == TLSS_SUCCESS);
+	 ASSERT(out != NULL);
+	 tlssDigit digitA = 99;
+	 tlssDigit digitB = 99;
+	 tlssGetValue(m_data.context, out, 6, 5, &digitA);
+	 tlssGetValue(m_data.context, out, 0, 2, &digitB);
+	 ASSERT(digitA == 1 && digitB == 8);
+	 tlssReleaseGrid(m_data.context, &nextGridA);
+	 tlssReleaseGrid(m_data.context, &nextGridB);
      },
      // data
      {
