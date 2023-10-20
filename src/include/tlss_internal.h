@@ -30,10 +30,18 @@ struct _tlssContext
     tlssGrid* m_deadGrids;
 };
 
+typedef struct _tlssMeta
+{
+    MANAGED;
+    tlssSolverMetaID m_id;
+    tlssMetaPtr m_meta;
+} tlssMeta;
+
 struct _tlssGrid
 {
     MANAGED;
     tlssDigit m_data[81];
+    tlssMeta* m_meta;
 };
 
 tlssReturn tlssAllocGrid(tlssContext* context, tlssGrid** grid);

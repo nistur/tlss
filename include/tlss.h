@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __TEMPLATE_H__
-#define __TEMPLATE_H__
+#ifndef __TLSS_H__
+#define __TLSS_H__
 #ifdef __cplusplus
 extern "C" {
 #endif/*__cplusplus*/
@@ -47,10 +47,15 @@ TLSS_EXPORT tlssReturn   tlssSetValue        (tlssContext* context, tlssGrid* in
 
 TLSS_EXPORT tlssReturn   tlssGridEquals      (tlssGrid* a, tlssGrid* b);
 TLSS_EXPORT tlssReturn   tlssGridMerge       (tlssContext* context, tlssGrid* a, tlssGrid* b, tlssGrid** out);
+
+TLSS_EXPORT tlssReturn   tlssStep            (tlssContext* context, tlssGrid* in, tlssGrid** out);
+TLSS_EXPORT tlssReturn   tlssSolve           (tlssContext* context, tlssGrid* in, tlssGrid** out);
     
 TLSS_EXPORT const char*  tlssError();
 
+#include "tlss_solver.h"
+    
 #ifdef __cplusplus
 }
 #endif/*__cplusplus*/
-#endif/*__TEMPLATE_H__*/
+#endif/*__TLSS_H__*/

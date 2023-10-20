@@ -4,6 +4,46 @@
 
 #include <cstddef>
 
+tlssDigit incompleteData[] = {
+    0, 6, 0,  4, 2, 0,  0, 0, 1,
+    1, 9, 0,  0, 8, 3,  0, 2, 0,
+    0, 0, 2,  0, 1, 0,  7, 0, 0,
+    
+    0, 0, 0,  8, 7, 0,  5, 0, 0,
+    0, 5, 1,  3, 4, 9,  0, 0, 2,
+    4, 0, 3,  0, 5, 0,  0, 8, 0,
+    
+    6, 0, 5,  1, 3, 2,  0, 0, 0,
+    7, 0, 4,  0, 0, 8,  0, 1, 0,
+    0, 1, 0,  0, 6, 0,  8, 5, 0,
+};
+tlssDigit invalidData[] = {
+    1, 2, 0,  0, 0, 0,  0, 0, 0,
+    1, 2, 0,  0, 0, 0,  0, 0, 0,
+    1, 2, 0,  0, 0, 0,  0, 0, 0,
+    
+    2, 3, 0,  0, 0, 0,  0, 0, 0,
+    2, 3, 0,  0, 0, 0,  0, 0, 0,
+    2, 3, 0,  0, 0, 0,  0, 0, 0,
+    
+    3, 4, 0,  0, 0, 0,  0, 0, 0,
+    3, 4, 0,  0, 0, 0,  0, 0, 0,
+    3, 4, 0,  0, 0, 0,  0, 0, 0,
+};
+tlssDigit validData[] = {
+    5, 6, 8,  4, 2, 7,  3, 9, 1,
+    1, 9, 7,  6, 8, 3,  4, 2, 5,
+    3, 4, 2,  9, 1, 5,  7, 6, 8,
+    
+    9, 2, 6,  8, 7, 1,  5, 3, 4,
+    8, 5, 1,  3, 4, 9,  6, 7, 2,
+    4, 7, 3,  2, 5, 6,  1, 8, 9,
+    
+    6, 8, 5,  1, 3, 2,  9, 4, 7,
+    7, 3, 4,  5, 9, 8,  2, 1, 6,
+    2, 1, 9,  7, 6, 4,  8, 5, 3,
+};
+
 TEST(InitTerminate, Basic, 0.0f,
      // initialisation
      {
@@ -284,6 +324,86 @@ TEST(MergeGrid, Basic, 0.0f,
      }
     );
 
+
+TEST(Step, Basic, 0.0f,
+     //initialisation
+     {
+	 tlssInitContext(&m_data.context);
+	 tlssLoad(m_data.context, invalidData, &m_data.invalidGrid);
+	 tlssLoad(m_data.context, incompleteData, &m_data.validGrid);
+     },
+     // cleanup
+     {
+	 tlssReleaseGrid(m_data.context, &m_data.invalidGrid);
+	 tlssReleaseGrid(m_data.context, &m_data.validGrid);
+	 tlssTerminateContext(&m_data.context);
+     },
+     //test
+     {
+	 tlssGrid* out = NULL;
+	 ASSERT(tlssStep(NULL, m_data.validGrid, &out) == TLSS_NO_CONTEXT);
+	 ASSERT(out == NULL);
+	 ASSERT(tlssStep(m_data.context, NULL, &out) == TLSS_NO_GRID);
+	 ASSERT(out == NULL);
+	 ASSERT(tlssStep(m_data.context, m_data.validGrid, NULL) == TLSS_NO_GRID);
+	 ASSERT(out == NULL);
+	 ASSERT(tlssStep(m_data.context, m_data.invalidGrid, &out) == TLSS_INVALID_GRID);
+	 ASSERT(out == NULL);
+
+	 ASSERT(tlssStep(m_data.context, m_data.validGrid, &out) == TLSS_SUCCESS);
+	 ASSERT(out != NULL);
+	 ASSERT(tlssGridEquals(m_data.validGrid, out) == TLSS_INVALID_GRID);
+	 tlssReleaseGrid(m_data.context, &out);
+     },
+     // data
+     {
+	 tlssGrid* validGrid;
+	 tlssGrid* invalidGrid;
+	 tlssContext* context;
+     }
+    );
+
+TEST(Solve, Basic, 0.0f,
+     //initialisation
+     {
+	 tlssInitContext(&m_data.context);
+	 tlssLoad(m_data.context, invalidData, &m_data.invalidGrid);
+	 tlssLoad(m_data.context, incompleteData, &m_data.validGrid);
+	 tlssLoad(m_data.context, validData, &m_data.completeGrid);
+     },
+     // cleanup
+     {
+	 tlssReleaseGrid(m_data.context, &m_data.completeGrid);
+	 tlssReleaseGrid(m_data.context, &m_data.invalidGrid);
+	 tlssReleaseGrid(m_data.context, &m_data.validGrid);
+	 tlssTerminateContext(&m_data.context);
+     },
+     //test
+     {
+	 tlssGrid* out = NULL;
+	 ASSERT(tlssSolve(NULL, m_data.validGrid, &out) == TLSS_NO_CONTEXT);
+	 ASSERT(out == NULL);
+	 ASSERT(tlssSolve(m_data.context, NULL, &out) == TLSS_NO_GRID);
+	 ASSERT(out == NULL);
+	 ASSERT(tlssSolve(m_data.context, m_data.validGrid, NULL) == TLSS_NO_GRID);
+	 ASSERT(out == NULL);
+	 ASSERT(tlssSolve(m_data.context, m_data.invalidGrid, &out) == TLSS_INVALID_GRID);
+	 ASSERT(out == NULL);
+
+	 ASSERT(tlssSolve(m_data.context, m_data.validGrid, &out) == TLSS_SUCCESS);
+	 ASSERT(out != NULL);
+	 ASSERT(tlssGridEquals(m_data.validGrid, out) == TLSS_INVALID_GRID);
+	 ASSERT(tlssGridEquals(m_data.completeGrid, out) == TLSS_SUCCESS);
+	 tlssReleaseGrid(m_data.context, &out);
+     },
+     // data
+     {
+	 tlssGrid* validGrid;
+	 tlssGrid* invalidGrid;
+	 tlssGrid* completeGrid;
+	 tlssContext* context;
+     }
+    );
 
 TEST(Dummy, Basic, 0.0f,
      //initialisation

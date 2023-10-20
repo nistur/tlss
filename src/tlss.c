@@ -101,11 +101,10 @@ tlssReturn tlssValidateGrid(tlssGrid* grid)
     {
 	for(tlssIndex x = 0; x < 9; ++x)
 	{
-	    tlssIndex i = (y*9)+x;
+	    tlssIndex i = TLSS_INDEX(x, y);
 	    tlssDigit val = grid->m_data[i];
-	    if(val == 0)
-		tlssReturnCode(INCOMPLETE_DATA);
-
+	    if(val == 0) continue;
+	    
 	    // check the row, column, and box for matches
 	    for(int rc = 0; rc < 9; ++rc)
 	    {
@@ -129,6 +128,12 @@ tlssReturn tlssValidateGrid(tlssGrid* grid)
 		}
 	    }
 	}
+    }
+    for(tlssIndex i = 0; i < 81; ++i)
+    {
+	tlssDigit val = grid->m_data[i];
+	if(val == 0)
+	    tlssReturnCode(INCOMPLETE_DATA);
     }
     
     tlssReturnCode(SUCCESS);
@@ -244,4 +249,50 @@ tlssReturn tlssGridMerge(tlssContext* context, tlssGrid* a, tlssGrid* b, tlssGri
     }
     
     tlssReturnCode(SUCCESS);
+}
+
+tlssReturn tlssStep(tlssContext* context, tlssGrid* in, tlssGrid** out)
+{
+    TLSS_CHECK(context == 0, NO_CONTEXT);
+    TLSS_CHECK(in == 0 || out == 0, NO_GRID);
+    if(tlssValidateGrid(in) == TLSS_INVALID_DATA)
+	tlssReturnCode(INVALID_GRID);
+    if(tlssSimpleSolver(context, in, out) != TLSS_SUCCESS)
+	tlssReturn();
+    tlssReturnCode(SUCCESS);
+}
+
+tlssReturn tlssSolve(tlssContext* context, tlssGrid* in, tlssGrid** out)
+{
+    TLSS_CHECK(context == 0, NO_CONTEXT);
+    TLSS_CHECK(in == 0 || out == 0, NO_GRID);
+    tlssGrid* currentGrid = 0;
+    tlssGrid* nextGrid = 0;
+
+    tlssReturn result = tlssStep(context, in, &currentGrid);
+    while(result == TLSS_SUCCESS)
+    {
+	result = tlssStep(context, currentGrid, &nextGrid);
+	if(result != TLSS_SUCCESS)
+	{
+	    tlssReleaseGrid(context, &currentGrid);
+	    tlssReturn();
+	}
+	if(tlssGridEquals(currentGrid, nextGrid) == TLSS_SUCCESS)
+	{
+	    *out = nextGrid;
+	    tlssReleaseGrid(context, &currentGrid);
+	    tlssReturnCode(INVALID_DATA);
+	}
+	tlssReleaseGrid(context, &currentGrid);
+	currentGrid = nextGrid;
+	nextGrid = 0;
+
+	if(tlssValidateGrid(currentGrid) == TLSS_SUCCESS)
+	{
+	    *out = currentGrid;
+	    tlssReturnCode(SUCCESS);
+	}
+    }
+    tlssReturn();
 }

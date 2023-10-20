@@ -35,7 +35,7 @@ TESTOBJS:=$(subst ${TESTDIR},${OBJDIR}/${TESTDIR},${TESTOBJS})
 
 .phony: all clean dir ${TARGET}-dynamic ${TARGET}-static test
 
-all: ${TARGET}-dynamic ${TARGET}-static test
+all: compile_commands.json ${TARGET}-dynamic ${TARGET}-static test
 
 ${TARGET}-dynamic : ${OUTDIR}/lib${TARGET}.so
 ${TARGET}-static : ${OUTDIR}/lib${TARGET}.a
@@ -67,6 +67,28 @@ ${OBJDIR}/${TESTDIR}/testsuite.o :
 ${OBJDIR}/${TESTDIR}/%.o : ${TESTDIR}/%.cpp
 	@echo "Compiling Test group... $<"
 	@${CXX} ${CXXFLAGS} ${TESTINCLUDE} $< -c -o $@ -MMD -MP -MF $@.d
+
+compile_commands.json :
+	@echo "[" > $@
+	@for obj in ${OBJS}; do \
+		echo -n "{" >> $@ ; \
+		echo -e "\t\"directory\": \""`pwd`"\", " >> $@ ; \
+		echo -en "\t\"arguments\": [\""${CC}"\"," >> $@ ; \
+		for flag in ${CFLAGS}; do \
+			echo -n "\"$$flag\", " >> $@ ; \
+		done ; \
+		for inc in ${INCLUDE}; do \
+			echo -n "\"$$inc\", " >> $@ ; \
+		done ; \
+		echo -n "\"-fpic\", \"" >> $@ ; \
+		echo -n $$obj | sed -e 's/\.o/\.c/' -e 's@${OBJDIR}@${SRCDIR}@' >> $@; \
+		echo -n "\" \"-c\", \"-o\" \""$$obj"\", \"-MMD\", \"-MP\" \"-MF\" \""$$obj".d\"" >> $@ ; \
+		echo "]," >> $@ ; \
+		echo -en "\t\"file\": \"" >> $@; \
+		echo -n $$obj | sed -e 's/\.o/\.c/' -e 's@${OBJDIR}@${SRCDIR}@' >> $@; \
+		echo "\" }," >> $@ ; \
+	done
+	@echo "]" >> $@
 
 dir:
 	@mkdir -p ${OBJDIR}
