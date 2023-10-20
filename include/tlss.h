@@ -5,6 +5,8 @@
 extern "C" {
 #endif/*__cplusplus*/
 
+#include <stddef.h>
+    
 #ifdef TLSS_DYNAMIC
 # ifdef WIN32
 #  ifdef TLSS_BUILD
@@ -50,6 +52,14 @@ TLSS_EXPORT tlssReturn   tlssGridMerge       (tlssContext* context, tlssGrid* a,
 
 TLSS_EXPORT tlssReturn   tlssStep            (tlssContext* context, tlssGrid* in, tlssGrid** out);
 TLSS_EXPORT tlssReturn   tlssSolve           (tlssContext* context, tlssGrid* in, tlssGrid** out);
+
+
+    typedef void*(*tlssAllocFunc)(size_t size);
+    TLSS_EXPORT void tlssSetAlloc(tlssAllocFunc allocfunc);
+
+    typedef void(*tlssFreeFunc)(void* free);
+    TLSS_EXPORT void tlssSetFree(tlssFreeFunc freefunc);
+
     
 TLSS_EXPORT const char*  tlssError();
 

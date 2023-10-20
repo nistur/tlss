@@ -405,6 +405,58 @@ TEST(Solve, Basic, 0.0f,
      }
     );
 
+size_t totalalloc = 0;
+size_t maxalloc = 0;
+void* testAlloc(size_t size)
+{
+    totalalloc += size;
+    if(totalalloc > maxalloc) maxalloc = totalalloc;
+    void* ret = malloc(size + sizeof(size_t));
+    *(size_t*)ret = size;
+    return ((size_t*)ret)+1;
+}
+void testFree(void* ptr)
+{
+    ptr = ((size_t*)ptr) - 1;
+    totalalloc -= *(size_t*)ptr;
+    free(ptr);
+}
+
+
+TEST(Memory, Basic, 0.0f,
+     //initialisation
+     {
+	 tlssSetAlloc(testAlloc);
+	 tlssSetFree(testFree);
+     },
+     // cleanup
+     {
+	 printf("\tHigh Water: %llu Bytes\n", maxalloc);
+	 tlssSetAlloc(NULL);
+	 tlssSetFree(NULL);
+     },
+     //test
+     {
+	 ASSERT(totalalloc == 0);
+	 size_t start_size = totalalloc;
+	 tlssInitContext(&m_data.context);
+	 ASSERT(totalalloc != 0);
+	 tlssLoad(m_data.context, incompleteData, &m_data.grid);
+	 tlssGrid* out;
+	 tlssSolve(m_data.context, m_data.grid, &out);
+	 tlssReleaseGrid(m_data.context, &out);
+	 tlssReleaseGrid(m_data.context, &m_data.grid);
+	 tlssTerminateContext(&m_data.context);
+	 ASSERT(totalalloc == start_size);
+     },
+     // data
+     {
+	 tlssGrid* grid;
+	 tlssContext* context;
+     }
+    );
+
+
 TEST(Dummy, Basic, 0.0f,
      //initialisation
      {

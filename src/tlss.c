@@ -296,3 +296,22 @@ tlssReturn tlssSolve(tlssContext* context, tlssGrid* in, tlssGrid** out)
     }
     tlssReturn();
 }
+
+tlssAllocFunc g_allocFunc = malloc;
+tlssFreeFunc g_freeFunc = free;
+
+void tlssSetAlloc(tlssAllocFunc allocfunc)
+{
+    if(allocfunc == 0)
+	g_allocFunc = malloc;
+    else
+	g_allocFunc = allocfunc;
+}
+
+void tlssSetFree(tlssFreeFunc freefunc)
+{
+    if(freefunc == 0)
+	g_freeFunc = free;
+    else
+	g_freeFunc = freefunc;
+}

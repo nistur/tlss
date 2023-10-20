@@ -51,8 +51,10 @@ tlssReturn tlssGridClone(tlssGrid* src, tlssGrid* dst);
  * Some basic memory management wrappers
  ***************************************/
 #include <stdlib.h>
-#define tlssMalloc(x) (x*)malloc(sizeof(x))
-#define tlssFree(x)   free(x)
+extern tlssAllocFunc g_allocFunc;
+extern tlssFreeFunc  g_freeFunc;
+#define tlssMalloc(x) (x*)g_allocFunc(sizeof(x))
+#define tlssFree(x)   g_freeFunc(x)
 
 /***************************************
  * Error handling
