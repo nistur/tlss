@@ -1,4 +1,3 @@
-#include "include/tlss_internal.h"
 #include "tlss.h"
 #include "tlss_internal.h"
 
@@ -19,7 +18,9 @@ tlssReturn tlssSimpleSolver(tlssContext* context, tlssGrid* in, tlssGrid** out)
 	for(tlssIndex x = 0; x < 9; ++x)
 	{
 	    tlssIndex i = TLSS_INDEX(x, y);
-	    tlssDigit val = in->m_data[i];
+	    tlssDigit val = 0;
+	    if(tlssGetValue(context, in, y, x, &val) != TLSS_SUCCESS)
+		tlssReturn();
 	    if(val == 0) continue;
 	    
 	    // check the row, column, and box for matches
@@ -44,6 +45,9 @@ tlssReturn tlssSimpleSolver(tlssContext* context, tlssGrid* in, tlssGrid** out)
 	}
     }
 
+    // As grids are immutable, we have to do a bit of a dance around this - we set one value
+    // and get a new grid returned, then use that to set another value. A much better way would be
+    // to resolve the availability grid into a tlssDigit array, and then load that into a new grid.
     tlssGrid* currentGrid = in;
     tlssGrid* nextGrid = 0;
 
@@ -54,7 +58,7 @@ tlssReturn tlssSimpleSolver(tlssContext* context, tlssGrid* in, tlssGrid** out)
 	tlssDigit d = 0;
 	if(tlssGetValue(context, currentGrid, y, x, &d) != TLSS_SUCCESS)
 	    tlssReturn();
-	if((*out)->m_data[i] == 0)
+	if(d == 0)
 	{
 	    switch(availabilityGrid[i])
 	    {
@@ -65,6 +69,8 @@ tlssReturn tlssSimpleSolver(tlssContext* context, tlssGrid* in, tlssGrid** out)
 			tlssReturn();					\
 		    if(currentGrid != in && tlssReleaseGrid(context, &currentGrid) != TLSS_SUCCESS) \
 			tlssReturn();					\
+		    currentGrid = nextGrid;				\
+		    nextGrid = 0;					\
 		    break;						\
 		}
 		SET(1);
@@ -79,7 +85,7 @@ tlssReturn tlssSimpleSolver(tlssContext* context, tlssGrid* in, tlssGrid** out)
 	    }
 	}
     }
-
+    *out = currentGrid;
     
     tlssReturnCode(SUCCESS);
 }

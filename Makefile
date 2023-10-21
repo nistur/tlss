@@ -33,7 +33,7 @@ TESTINCLUDE=${INCLUDE} -I${TESTDIR} -I${TESTDIR}/testsuite
 TESTOBJS:=$(patsubst %.cpp,%.o,$(wildcard ${TESTDIR}/*.cpp))
 TESTOBJS:=$(subst ${TESTDIR},${OBJDIR}/${TESTDIR},${TESTOBJS})
 
-ECHO=echo
+ECHO=echo -e
 
 .phony: all clean dir ${TARGET}-dynamic ${TARGET}-static test
 
@@ -84,7 +84,7 @@ compile_commands.json :
 	@for obj in ${OBJS}; do \
 		${ECHO} -n "{" >> $@ ; \
 		${ECHO} "\t\"directory\": \""`pwd`"\", " >> $@ ; \
-		${ECHO} -n "\t\"arguments\": [\""${CC}"\"," >> $@ ; \
+		${ECHO} -n "\t\"arguments\": [\"/usr/bin/g"${CC}"\"," >> $@ ; \
 		for flag in ${CFLAGS}; do \
 			${ECHO} -n "\"$$flag\", " >> $@ ; \
 		done ; \
@@ -93,11 +93,14 @@ compile_commands.json :
 		done ; \
 		${ECHO} -n "\"-fpic\", \"" >> $@ ; \
 		${ECHO} -n $$obj | sed -e 's/\.o/\.c/' -e 's@${OBJDIR}@${SRCDIR}@' >> $@; \
-		${ECHO} -n "\" \"-c\", \"-o\" \""$$obj"\", \"-MMD\", \"-MP\" \"-MF\" \""$$obj".d\"" >> $@ ; \
+		${ECHO} -n "\", \"-c\", \"-o\", \""$$obj"\", \"-MMD\", \"-MP\", \"-MF\", \""$$obj".d\"" >> $@ ; \
 		${ECHO} "]," >> $@ ; \
-		${ECHO} -n "\t\"file\": \"" >> $@; \
+		${ECHO} -n "\t\"file\": \""`pwd`/"" >> $@; \
 		${ECHO} -n $$obj | sed -e 's/\.o/\.c/' -e 's@${OBJDIR}@${SRCDIR}@' >> $@; \
-		${ECHO} "\" }," >> $@ ; \
+		${ECHO} "\"," >> $@ ; \
+		${ECHO} -n "\t\"output\": \""`pwd`/"" >> $@; \
+		${ECHO} -n $$obj >> $@; \
+		${ECHO} "\" },\n" >> $@ ; \
 	done
 	@${ECHO} "]" >> $@
 
