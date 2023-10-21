@@ -407,17 +407,18 @@ TEST(Solve, Basic, 0.0f,
 
 size_t totalalloc = 0;
 size_t maxalloc = 0;
+
 void* testAlloc(size_t size)
 {
     totalalloc += size;
     if(totalalloc > maxalloc) maxalloc = totalalloc;
     void* ret = malloc(size + sizeof(size_t));
-    *(size_t*)ret = size;
-    return ((size_t*)ret)+1;
+    (*(size_t*)ret) = size;
+    return &((size_t*)ret)[1];
 }
 void testFree(void* ptr)
 {
-    ptr = ((size_t*)ptr) - 1;
+    ptr = &((size_t*)ptr)[-1];
     totalalloc -= *(size_t*)ptr;
     free(ptr);
 }
@@ -426,12 +427,14 @@ void testFree(void* ptr)
 TEST(Memory, Basic, 0.0f,
      //initialisation
      {
+	 totalalloc = 0;
+	 maxalloc = 0;
 	 tlssSetAlloc(testAlloc);
 	 tlssSetFree(testFree);
      },
      // cleanup
      {
-	 printf("\tHigh Water: %llu Bytes\n", maxalloc);
+	 printf("\tHigh Water: %zu Bytes\n", maxalloc);
 	 tlssSetAlloc(NULL);
 	 tlssSetFree(NULL);
      },

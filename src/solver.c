@@ -44,25 +44,29 @@ tlssReturn tlssSimpleSolver(tlssContext* context, tlssGrid* in, tlssGrid** out)
 	}
     }
 
-    if(tlssAllocGrid(context, out) != TLSS_SUCCESS)
-	tlssReturn();
-    tlssReturn res = tlssGridClone(in, *out);
-    if(res != TLSS_SUCCESS)
-    {
-	tlssReleaseGrid(context, out);
-	return res;
-    }
-    
+    tlssGrid* currentGrid = in;
+    tlssGrid* nextGrid = 0;
+
     for(tlssIndex i = 0; i < 81; ++i)
     {
+	tlssIndex x = i%9;
+	tlssIndex y = i/9;
+	tlssDigit d = 0;
+	if(tlssGetValue(context, currentGrid, y, x, &d) != TLSS_SUCCESS)
+	    tlssReturn();
 	if((*out)->m_data[i] == 0)
 	{
 	    switch(availabilityGrid[i])
 	    {
-#define SET(x)					\
-		case TLSS_AVAIL_##x:		\
-		    (*out)->m_data[i] = x;	\
-		    break;
+#define SET(n)								\
+		case TLSS_AVAIL_##n:					\
+		{							\
+		    if(tlssSetValue(context, currentGrid, y, x, n, &nextGrid) != TLSS_SUCCESS) \
+			tlssReturn();					\
+		    if(currentGrid != in && tlssReleaseGrid(context, &currentGrid) != TLSS_SUCCESS) \
+			tlssReturn();					\
+		    break;						\
+		}
 		SET(1);
 		SET(2);
 		SET(3);
