@@ -33,6 +33,8 @@ TESTINCLUDE=${INCLUDE} -I${TESTDIR} -I${TESTDIR}/testsuite
 TESTOBJS:=$(patsubst %.cpp,%.o,$(wildcard ${TESTDIR}/*.cpp))
 TESTOBJS:=$(subst ${TESTDIR},${OBJDIR}/${TESTDIR},${TESTOBJS})
 
+ECHO=echo
+
 .phony: all clean dir ${TARGET}-dynamic ${TARGET}-static test
 
 all: compile_commands.json ${TARGET}-dynamic ${TARGET}-static test
@@ -40,55 +42,64 @@ all: compile_commands.json ${TARGET}-dynamic ${TARGET}-static test
 ${TARGET}-dynamic : ${OUTDIR}/lib${TARGET}.so
 ${TARGET}-static : ${OUTDIR}/lib${TARGET}.a
 test: ${OUTDIR}tests
-	@echo "Running Testsuite"
+	@${ECHO} "Running Testsuite"
+	@$< -n 1000
+
+test-static: ${OUTDIR}tests-static
+	@${ECHO} "Running Testsuite"
 	@$< -n 1000
 
 ${OUTDIR}/lib${TARGET}.so : dir ${OBJS}
-	@echo "Linking... lib${TARGET}.so"
+	@${ECHO} "Linking... lib${TARGET}.so"
 	@${CC} ${LDFLAGS} -shared -o $@ ${OBJS}
 
 ${OUTDIR}/lib${TARGET}.a : dir ${OBJS}
-	@echo "Linking... lib${TARGET}.a"
+	@${ECHO} "Linking... lib${TARGET}.a"
 	@ar -crs $@ ${OBJS}
 
 ${OBJDIR}/%.o : ${SRCDIR}/%.c
-	@echo "Compiling... $<"
+	@${ECHO} "Compiling... $<"
 	@${CC} ${CFLAGS} ${INCLUDE} -fpic $< -c -o $@ -MMD -MP -MF $@.d
 
 ${OUTDIR}tests : ${TARGET}-dynamic ${OBJDIR}/${TESTDIR}/testsuite.o ${TESTOBJS}
-	@echo "Linking Testsuite"
+	@${ECHO} "Linking Testsuite"
 	@${CXX} -o $@ ${LDFLAGS} ${TESTOBJS} ${OBJDIR}/${TESTDIR}/testsuite.o -L${OUTDIR} -l${TARGET}
 	@patchelf --set-rpath ${OUTDIR} $@
 
+${OUTDIR}tests-static : ${TARGET}-static ${OBJDIR}/${TESTDIR}/testsuite.o ${TESTOBJS}
+	@${ECHO} "Linking Testsuite"
+	@${CXX} -o $@ ${LDFLAGS} ${TESTOBJS} ${OBJDIR}/${TESTDIR}/testsuite.o ${OUTDIR}/lib${TARGET}.a
+
+
 ${OBJDIR}/${TESTDIR}/testsuite.o :
-	@echo "Compiling Testsuite"
+	@${ECHO} "Compiling Testsuite"
 	@${CXX} ${CXXFLAGS} ${TESTINCLUDE} ${TESTDIR}/testsuite/tests.cpp -c -o $@ -MMD -MP -MF $@.d
 
 ${OBJDIR}/${TESTDIR}/%.o : ${TESTDIR}/%.cpp
-	@echo "Compiling Test group... $<"
+	@${ECHO} "Compiling Test group... $<"
 	@${CXX} ${CXXFLAGS} ${TESTINCLUDE} $< -c -o $@ -MMD -MP -MF $@.d
 
 compile_commands.json :
-	@echo "[" > $@
+	@${ECHO} "[" > $@
 	@for obj in ${OBJS}; do \
-		echo -n "{" >> $@ ; \
-		echo -e "\t\"directory\": \""`pwd`"\", " >> $@ ; \
-		echo -en "\t\"arguments\": [\""${CC}"\"," >> $@ ; \
+		${ECHO} -n "{" >> $@ ; \
+		${ECHO} "\t\"directory\": \""`pwd`"\", " >> $@ ; \
+		${ECHO} -n "\t\"arguments\": [\""${CC}"\"," >> $@ ; \
 		for flag in ${CFLAGS}; do \
-			echo -n "\"$$flag\", " >> $@ ; \
+			${ECHO} -n "\"$$flag\", " >> $@ ; \
 		done ; \
 		for inc in ${INCLUDE}; do \
-			echo -n "\"$$inc\", " >> $@ ; \
+			${ECHO} -n "\"$$inc\", " >> $@ ; \
 		done ; \
-		echo -n "\"-fpic\", \"" >> $@ ; \
-		echo -n $$obj | sed -e 's/\.o/\.c/' -e 's@${OBJDIR}@${SRCDIR}@' >> $@; \
-		echo -n "\" \"-c\", \"-o\" \""$$obj"\", \"-MMD\", \"-MP\" \"-MF\" \""$$obj".d\"" >> $@ ; \
-		echo "]," >> $@ ; \
-		echo -en "\t\"file\": \"" >> $@; \
-		echo -n $$obj | sed -e 's/\.o/\.c/' -e 's@${OBJDIR}@${SRCDIR}@' >> $@; \
-		echo "\" }," >> $@ ; \
+		${ECHO} -n "\"-fpic\", \"" >> $@ ; \
+		${ECHO} -n $$obj | sed -e 's/\.o/\.c/' -e 's@${OBJDIR}@${SRCDIR}@' >> $@; \
+		${ECHO} -n "\" \"-c\", \"-o\" \""$$obj"\", \"-MMD\", \"-MP\" \"-MF\" \""$$obj".d\"" >> $@ ; \
+		${ECHO} "]," >> $@ ; \
+		${ECHO} -n "\t\"file\": \"" >> $@; \
+		${ECHO} -n $$obj | sed -e 's/\.o/\.c/' -e 's@${OBJDIR}@${SRCDIR}@' >> $@; \
+		${ECHO} "\" }," >> $@ ; \
 	done
-	@echo "]" >> $@
+	@${ECHO} "]" >> $@
 
 dir:
 	@mkdir -p ${OBJDIR}
