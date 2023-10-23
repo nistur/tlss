@@ -1,4 +1,3 @@
-/*
 Copyright (c) 2023 Philipp Geyer
 
 This software is provided 'as-is', without any express or implied
@@ -19,14 +18,3 @@ freely, subject to the following restrictions:
 
 Philipp Geyer
 nistur@gmail.com
-*/
-#include "tlss.h"
-
-tlssReturn g_tlssError;
-const char* g_tlssErrors[] = 
-{
-    "Success",
-    "Null context",
-    "Null grid",
-    "Invalid data",
-};
